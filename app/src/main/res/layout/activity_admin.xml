@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Nama Masjid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nama Masjid"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/etNamaMasjid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Masukkan nama masjid" />
+
+        <!-- Alamat Masjid -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alamat Masjid"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="12dp" />
+
+        <EditText
+            android:id="@+id/etAlamatMasjid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Masukkan alamat masjid" />
+
+        <!-- Tombol Simpan -->
+        <Button
+            android:id="@+id/btnSimpanMasjid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simpan Masjid"
+            android:layout_marginTop="12dp" />
+
+        <!-- List Pengumuman -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Daftar Pengumuman"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+        <Button
+            android:id="@+id/btnTambahPengumuman"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tambah Pengumuman"
+            android:layout_marginTop="8dp" />
+
+        <ListView
+            android:id="@+id/listViewPengumuman"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Tombol Kembali -->
+        <Button
+            android:id="@+id/btnKembali"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kembali ke Papan Informasi"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+
+</ScrollView>

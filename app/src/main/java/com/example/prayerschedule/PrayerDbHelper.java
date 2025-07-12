@@ -57,4 +57,55 @@ public class PrayerDbHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRAYER_TIMES);
         onCreate(db);
     }
+    // -------------------- Fungsi untuk Masjid --------------------
+
+    public void updateMasjid(String name, String address) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Hapus data lama (supaya hanya ada 1 record masjid)
+        db.delete(TABLE_MOSQUE, null, null);
+
+        String insertQuery = "INSERT INTO " + TABLE_MOSQUE + " (" +
+                COLUMN_NAME + ", " + COLUMN_ADDRESS + ") VALUES (?, ?)";
+        db.execSQL(insertQuery, new Object[]{name, address});
+    }
+
+    public android.database.Cursor getMasjid() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_MOSQUE + " LIMIT 1", null);
+    }
+
+// -------------------- Fungsi untuk Pengumuman --------------------
+
+    public void insertPengumuman(String text) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String insertQuery = "INSERT INTO " + TABLE_ANNOUNCEMENTS + " (" + COLUMN_ANNOUNCEMENT + ") VALUES (?)";
+        db.execSQL(insertQuery, new Object[]{text});
+    }
+
+    public void updatePengumuman(String oldText, String newText) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String updateQuery = "UPDATE " + TABLE_ANNOUNCEMENTS +
+                " SET " + COLUMN_ANNOUNCEMENT + " = ? WHERE " + COLUMN_ANNOUNCEMENT + " = ?";
+        db.execSQL(updateQuery, new Object[]{newText, oldText});
+    }
+
+    public void deletePengumuman(String text) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String deleteQuery = "DELETE FROM " + TABLE_ANNOUNCEMENTS + " WHERE " + COLUMN_ANNOUNCEMENT + " = ?";
+        db.execSQL(deleteQuery, new Object[]{text});
+    }
+
+    public java.util.ArrayList<String> getAllPengumuman() {
+        java.util.ArrayList<String> list = new java.util.ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        android.database.Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_ANNOUNCEMENTS, null);
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ANNOUNCEMENT)));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
 }

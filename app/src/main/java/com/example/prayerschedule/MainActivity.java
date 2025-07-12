@@ -1,6 +1,7 @@
 package com.example.prayerschedule;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -51,6 +52,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private PrayerDbHelper dbHelper;
 
+    private int clickCounter = 0;
+    private Handler clickHandler = new Handler();
+    private Runnable resetClickRunnable = () -> clickCounter = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         initializeViews();
         dbHelper = new PrayerDbHelper(this);
 
+        updateMasjidInfo();
+        updateAnnouncement();
+
         updateTimeAndDate();
 
         imageHandler = new Handler();
@@ -66,7 +74,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         requestLocationPermission();
-        
+
+        // Handle klik pada announcement untuk masuk AdminActivity
+        tvAnnouncement.setOnClickListener(v -> handleClickAdmin());
     }
 
     private void initializeViews() {
@@ -85,6 +95,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         tvAshar = findViewById(R.id.tvAshar);
         tvMaghrib = findViewById(R.id.tvMaghrib);
         tvIsya = findViewById(R.id.tvIsya);
+        tvAnnouncement.setSelected(true);
+    }
+
+    private void updateMasjidInfo() {
+        var cursor = dbHelper.getMasjid();
+        if (cursor != null && cursor.moveToFirst()) {
+            tvMosqueName.setText(cursor.getString(cursor.getColumnIndexOrThrow(PrayerDbHelper.COLUMN_NAME)));
+            tvMosqueAddress.setText(cursor.getString(cursor.getColumnIndexOrThrow(PrayerDbHelper.COLUMN_ADDRESS)));
+            cursor.close();
+        }
+    }
+
+    private void updateAnnouncement() {
+        var list = dbHelper.getAllPengumuman();
+        StringBuilder sb = new StringBuilder();
+        for (String item : list) {
+            sb.append(item).append("     ");
+        }
+        tvAnnouncement.setText(sb.toString().isEmpty() ? "Tidak ada pengumuman" : sb.toString());
     }
 
     private void updateTimeAndDate() {
@@ -98,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 tvTime.setText(timeSdf.format(now));
                 tvDate.setText(dateSdf.format(now));
                 highlightCurrentPrayer();
-                handler.postDelayed(this, 1000); // update setiap detik
+                handler.postDelayed(this, 1000);
             }
         });
     }
@@ -118,8 +147,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    60000, // 1 menit
-                    10, // 10 meter
+                    60000,
+                    10,
                     this);
             updateLocation(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
         }
@@ -150,10 +179,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             double lat = location.getLatitude();
             double lon = location.getLongitude();
 
-
-
-            tvMosqueAddress.setText(String.format(Locale.getDefault(), "Lokasi: %.4f, %.4f", lat, lon));
-
             Calendar cal = Calendar.getInstance();
             int year = cal.get(Calendar.YEAR);
             int month = cal.get(Calendar.MONTH) + 1;
@@ -163,15 +188,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             double[] prayerTimes = PrayerCalculator.calcPrayerTimes(year, month, day, lon, lat, timeZone, -18, -18);
 
             updatePrayerTimes(prayerTimes);
-        } else {
-        double lat = -6.986376;
-        double lon =  110.396473;}
-
-
+        }
     }
 
     private void updatePrayerTimes(double[] prayerTimes) {
-        tvImsak.setText(String.format("Imsak\n%s", formatTime(prayerTimes[0] - 0.1))); // Imsak 10 menit sebelum Subuh
+        tvImsak.setText(String.format("Imsak\n%s", formatTime(prayerTimes[0] - 0.1)));
         tvShubuh.setText(String.format("Shubuh\n%s", formatTime(prayerTimes[0])));
         tvSyuruq.setText(String.format("Syuruq\n%s", formatTime(prayerTimes[1])));
         tvZhuhur.setText(String.format("Zhuhur\n%s", formatTime(prayerTimes[2])));
@@ -184,9 +205,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Calendar now = Calendar.getInstance();
         double currentTime = now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE) / 60.0;
 
-        TextView[] prayerViews = {tvShubuh, tvSyuruq, tvZhuhur, tvAshar, tvMaghrib, tvIsya};
+        TextView[] prayerViews = {tvImsak, tvShubuh, tvSyuruq, tvZhuhur, tvAshar, tvMaghrib, tvIsya};
         for (TextView tv : prayerViews) {
-            tv.setBackgroundColor(Color.TRANSPARENT);
+            tv.setBackgroundColor(Color.WHITE);  // beri background putih supaya tetap terlihat
+            tv.setTextColor(Color.BLACK);        // teks hitam
         }
 
         if (currentTime < getTimeFromTextView(tvShubuh)) {
@@ -206,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+
     private double getTimeFromTextView(TextView tv) {
         String[] parts = tv.getText().toString().split("\n");
         String[] timeParts = parts[1].split(":");
@@ -218,13 +241,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return String.format(Locale.getDefault(), "%02d:%02d", hours, minutes);
     }
 
-    // Implementasi metode LocationListener yang tidak digunakan
+    private void handleClickAdmin() {
+        clickCounter++;
+        clickHandler.removeCallbacks(resetClickRunnable);
+        clickHandler.postDelayed(resetClickRunnable, 1500);
+
+        if (clickCounter >= 5) {
+            clickCounter = 0;
+            startActivity(new Intent(this, AdminActivity.class));
+        }
+    }
+
+    // Unused LocationListener methods
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {}
-
     @Override
     public void onProviderEnabled(String provider) {}
-
     @Override
     public void onProviderDisabled(String provider) {}
 
@@ -232,6 +264,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
+        updateMasjidInfo();
+        updateAnnouncement();
     }
 
     @Override

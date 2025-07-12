@@ -14,4 +14,7 @@ Aplikasi Jadwal Sholat ini membantu pengguna untuk:
 
 ✅ dibuat oleh 24.01.53.7009-Maruf.A
 
+✅ dibuat oleh 24.01.53.6003-Moh. Irsyad Mutaqin
+
+
 Dikembangkan dengan Android Studio menggunakan bahasa pemrograman Java.
